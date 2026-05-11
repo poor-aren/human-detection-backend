@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KIPAS PINTAR</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --white: #ffffff;
+      --off: #f7f7f6;
+      --border: #e8e8e6;
+      --muted: #999994;
+      --text: #1a1a18;
+      --accent: #1a1a18;
+      --green: #2d6a4f;
+      --green-bg: #f0faf4;
+      --red: #c1121f;
+      --red-bg: #fff5f5;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--white);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .status-dot {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background 0.3s;
+    }
+
+    .dot.active { background: var(--green); }
+    .dot.pulse {
+      background: var(--green);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 1rem 1.25rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-label {
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .card-body {
+      padding: 1.25rem;
+    }
+
+    /* Metric card */
+    .metric-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem 1.75rem;
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      background: var(--white);
+    }
+
+    .metric-number {
+      font-size: 52px;
+      font-weight: 300;
+      line-height: 1;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      transition: all 0.4s ease;
+    }
+
+    .metric-unit {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .metric-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 0.5rem;
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* Image preview */
+    .image-wrap {
+      aspect-ratio: 4/3;
+      background: var(--off);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .image-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .image-wrap img.loaded { display: block; }
+
+    .img-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+    }
+
+    .img-placeholder svg { opacity: 0.4; }
+    .img-placeholder span { font-size: 12px; font-family: 'DM Mono', monospace; }
+
+    .img-timestamp {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.55);
+      color: #fff;
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      padding: 3px 7px;
+      border-radius: 4px;
+      display: none;
+    }
+
+    /* Log */
+    .log-wrap {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .log-header {
+      padding: 0.85rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .log-body {
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 0;
+    }
+
+    .log-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 1fr;
+      padding: 0.6rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .log-row:last-child { border-bottom: none; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .log-time { color: var(--muted); }
+    .log-count { color: var(--text); font-weight: 500; }
+    .log-status-ok { color: var(--green); }
+    .log-status-err { color: var(--red); }
+
+    .log-empty {
+      padding: 1.5rem 1.25rem;
+      text-align: center;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted);
+    }
+
+    .badge {
+      font-size: 10px;
+      font-family: 'DM Mono', monospace;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: var(--off);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .badge.ok { background: var(--green-bg); color: var(--green); border-color: transparent; }
+    .badge.err { background: var(--red-bg); color: var(--red); border-color: transparent; }
+
+    @media (max-width: 600px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="logo">KIPAS PINTAR</span>
+  <div class="status-dot">
+    <div class="dot" id="dot"></div>
+    <span id="status-text">menunggu data</span>
+  </div>
+</header>
+
+<main>
+
+  <div class="grid">
+
+    <!-- Metric -->
+    <div>
+      <div class="metric-card">
+        <div>
+          <div style="display:flex; align-items:baseline; gap:8px;">
+            <div class="metric-number" id="count">—</div>
+            <div class="metric-unit">orang</div>
+          </div>
+          <div class="metric-sub" id="last-time">belum ada data</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image -->
+    <div>
+      <div class="image-wrap" id="img-wrap">
+        <div class="img-placeholder" id="img-placeholder">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <path d="M21 15l-5-5L5 21"/>
+          </svg>
+          <span>menunggu gambar</span>
+        </div>
+        <img id="preview-img" alt="Frame dari ESP32" />
+        <div class="img-timestamp" id="img-ts"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Log -->
+  <div class="log-wrap">
+    <div class="log-header">
+      <span class="card-label">Log Deteksi</span>
+      <span class="badge" id="log-count-badge">0 entri</span>
+    </div>
+    <div class="log-body" id="log-body">
+      <div class="log-empty" id="log-empty">belum ada aktivitas</div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  let prevCount = null;
+
+  function updateUI(data) {
+    const { log, latest_image, latest_result } = data;
+
+    // Dot status
+    const dot = document.getElementById("dot");
+    const statusText = document.getElementById("status-text");
+    if (log && log.length > 0) {
+      dot.className = "dot pulse";
+      statusText.textContent = "aktif";
+    }
+
+    // Gambar
+    if (latest_image) {
+      const img = document.getElementById("preview-img");
+      const placeholder = document.getElementById("img-placeholder");
+      const ts = document.getElementById("img-ts");
+      img.src = "data:image/jpeg;base64," + latest_image;
+      img.classList.add("loaded");
+      placeholder.style.display = "none";
+      ts.style.display = "block";
+      if (latest_result) ts.textContent = latest_result.timestamp;
+    }
+
+    // Angka deteksi
+    if (latest_result) {
+      const countEl = document.getElementById("count");
+      const timeEl = document.getElementById("last-time");
+      const c = latest_result.count;
+      if (latest_result.status === "ok") {
+        countEl.textContent = c;
+        countEl.style.color = "";
+      } else {
+        countEl.textContent = "!";
+        countEl.style.color = "#c1121f";
+      }
+      timeEl.textContent = "terakhir " + latest_result.timestamp;
+    }
+
+    // Log
+    if (log && log.length > 0) {
+      document.getElementById("log-empty").style.display = "none";
+      const body = document.getElementById("log-body");
+      document.getElementById("log-count-badge").textContent = log.length + " entri";
+
+      const existing = body.querySelectorAll(".log-row");
+      if (existing.length !== log.length || (log[0] && existing[0] && existing[0].dataset.ts !== log[0].timestamp)) {
+        body.innerHTML = "";
+        log.forEach(entry => {
+          const isErr = entry.status !== "ok";
+          const row = document.createElement("div");
+          row.className = "log-row";
+          row.dataset.ts = entry.timestamp;
+          row.innerHTML = `
+            <span class="log-time">${entry.timestamp}</span>
+            <span class="log-count">${isErr ? "—" : entry.count + " orang"}</span>
+            <span class="${isErr ? "log-status-err" : "log-status-ok"}">${isErr ? entry.status : "ok"}</span>
+          `;
+          body.appendChild(row);
+        });
+      }
+    }
+  }
+
+  async function poll() {
+    try {
+      const res = await fetch("/status");
+      if (!res.ok) throw new Error("fetch gagal");
+      const data = await res.json();
+      updateUI(data);
+    } catch (e) {
+      console.error("Poll error:", e);
+    }
+  }
+
+  poll();
+  setInterval(poll, 3000);
+</script>
+
+</body>
+</html>
